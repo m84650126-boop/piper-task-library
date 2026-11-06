@@ -79,8 +79,12 @@ class PolicyClient:
         return result,elapsed
 
     def close(self):
-        if self.process:
-            self.process.terminate()
+        if self.process and self.process.poll() is None:
+            if os.name=="nt":
+                # Windows venv python.exe may be a redirector with the real
+                # interpreter below it; terminate the owned service tree.
+                subprocess.run(["taskkill","/PID",str(self.process.pid),"/T","/F"],capture_output=True,creationflags=subprocess.CREATE_NO_WINDOW)
+            else:self.process.terminate()
             try:self.process.wait(timeout=5)
             except subprocess.TimeoutExpired:self.process.kill();self.process.wait()
         if self.log:self.log.close()
