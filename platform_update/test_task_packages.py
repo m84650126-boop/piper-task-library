@@ -37,13 +37,24 @@ class TaskPackages(unittest.TestCase):
 
     @unittest.skipUnless(__import__("os").name=="nt", "Windows directory ACL regression")
     def test_installed_directory_inherits_destination_acl(self):
-        import os
-        import subprocess
+        import ctypes
+        from ctypes import wintypes
         result=packages.install_package(self.archive,self.folder/"receiver")
-        command=" $ErrorActionPreference='Stop'; (Get-Acl -LiteralPath $env:PIPER_ACL_TEST_TARGET).AreAccessRulesProtected"
-        checked=subprocess.run(["powershell.exe","-NoProfile","-NonInteractive","-Command",command],
-            env={**os.environ,"PIPER_ACL_TEST_TARGET":result["path"]},capture_output=True,text=True,check=True)
-        self.assertEqual(checked.stdout.strip(),"False","Installed tasks must inherit the destination ACL, not mkdtemp's owner-only ACL")
+        api=ctypes.WinDLL("advapi32",use_last_error=True)
+        get_security=api.GetFileSecurityW
+        get_security.argtypes=[wintypes.LPCWSTR,wintypes.DWORD,wintypes.LPVOID,wintypes.DWORD,ctypes.POINTER(wintypes.DWORD)]
+        get_security.restype=wintypes.BOOL
+        needed=wintypes.DWORD()
+        get_security(result["path"],4,None,0,ctypes.byref(needed))
+        self.assertGreater(needed.value,0)
+        descriptor=ctypes.create_string_buffer(needed.value)
+        if not get_security(result["path"],4,descriptor,len(descriptor),ctypes.byref(needed)):raise ctypes.WinError(ctypes.get_last_error())
+        get_control=api.GetSecurityDescriptorControl
+        get_control.argtypes=[wintypes.LPVOID,ctypes.POINTER(wintypes.WORD),ctypes.POINTER(wintypes.DWORD)]
+        get_control.restype=wintypes.BOOL
+        control=wintypes.WORD();revision=wintypes.DWORD()
+        if not get_control(descriptor,ctypes.byref(control),ctypes.byref(revision)):raise ctypes.WinError(ctypes.get_last_error())
+        self.assertFalse(control.value & 0x1000,"Installed tasks must inherit destination ACL, not mkdtemp's protected owner-only ACL")
 
     def test_tampered_assets_and_extra_payload_rejected(self):
         for extra in (False, True):
