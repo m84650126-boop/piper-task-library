@@ -49,6 +49,7 @@ class Workbench:
         self.actual=None
         self.photos=[]
         self.closing=False
+        self.evaluation_panel=None
         self.context=mp.get_context("spawn")
         self.commands=self.context.Queue()
         self.events=self.context.Queue()
@@ -91,13 +92,15 @@ class Workbench:
         ttk.Label(header,text="  双RGB · 20Hz").pack(side="left")
         ttk.Button(header,text="新建场次",command=self.new).pack(side="right",padx=4)
         ttk.Button(header,text="打开场次",command=self.open_session).pack(side="right")
-        ttk.Button(header,text="新建原子任务…",command=self.new_atomic_task).pack(side="right",padx=4)
         menu=tk.Menu(self.root);packages=tk.Menu(menu,tearoff=False)
         packages.add_command(label="新建原子任务…",command=self.new_atomic_task)
         packages.add_command(label="检查 / 安装任务包…",command=self.import_task_package)
         packages.add_command(label="从任务源目录导出…",command=self.export_task_package)
         packages.add_command(label="查看共享任务库说明",command=self.task_library_help)
         menu.add_cascade(label="任务共享",menu=packages);self.root.configure(menu=menu)
+        actions=ttk.Frame(self.root,padding=(10,0));actions.pack(fill="x")
+        ttk.Button(actions,text="新建原子任务…",command=self.new_atomic_task).pack(side="left",padx=(0,8))
+        ttk.Button(actions,text="仿真评测 / 实时观测…",command=self.open_evaluation).pack(side="left")
         ttk.Label(self.root,textvariable=self.session_text,padding=(10,0)).pack(anchor="w")
         main=ttk.Panedwindow(self.root,orient="horizontal");main.pack(fill="both",expand=True,padx=10,pady=8)
         left_outer=ttk.Frame(main,width=350);right=ttk.Frame(main)
@@ -535,6 +538,17 @@ class Workbench:
         from workbench.task_creator_ui import TaskCreator
         return TaskCreator(self)
 
+    def open_evaluation(self):
+        if self.mode not in ("idle","error") or self.job:
+            messagebox.showinfo("当前忙碌","请先结束当前录制、批采或转换，再打开评测");return
+        if self.evaluation_panel and self.evaluation_panel.window.winfo_exists():
+            self.evaluation_panel.window.lift();return self.evaluation_panel
+        from workbench.evaluation_ui import EvaluationPanel
+        try:self.evaluation_panel=EvaluationPanel(self)
+        except (ValueError,TypeError) as exc:
+            messagebox.showerror("场景设置无效",str(exc));return
+        return self.evaluation_panel
+
     def new_task_help(self):
         window=tk.Toplevel(self.root);window.title("新建原子任务 · 详细步骤");window.geometry("880x680")
         text=tk.Text(window,wrap="word",font=("Microsoft YaHei UI",11));text.pack(fill="both",expand=True)
@@ -576,6 +590,8 @@ class Workbench:
         text.insert("1.0",(ROOT/"WORKBENCH_zh.md").read_text(encoding="utf-8"));text.configure(state="disabled")
 
     def close(self):
+        if self.evaluation_panel and self.evaluation_panel.running:
+            self.evaluation_panel.stop();self.status.set("正在停止仿真评测，请等待保存结束后再关闭工作台");return
         if self.job:messagebox.showinfo("检查/转换进行中","请等待当前任务完成再关闭，避免留下不完整导出");return
         if self.mode in ("recording","batch") and not messagebox.askyesno("结束采集","关闭会放弃当前未完成轨迹，已保存的数据保留。继续关闭？"):return
         self.closing=True;self.stop_preview()

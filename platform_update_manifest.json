@@ -2,7 +2,7 @@
   "schema": "piper_platform_sharing_update_v1",
   "base": "portable workbench 0.1 technical preview",
   "files": {
-    "collection_workbench.py": "28d3683268891cff5af494f36d086a45f70124a6cce18e12e5f57ba7764c75e1",
+    "collection_workbench.py": "cf7f74671c7f34a567ae446608035d0e2e517ecee608ca604fa82112b7753560",
     "platform_cli.py": "466b22b9c34ee32aa633f3631471e61cf2e2fa38409964277d55211cc66a58e7",
     "workbench/plugin_api.py": "ea244f69a316d2e3f13805d93e7d4b8df4911ae5049ea8ffd263d5721b4a654d",
     "workbench/task_packages.py": "264634ba2964fd547e391873d51b8ddeb662b7fa6f1b48498fe4f3e7ae5617db",
@@ -27,6 +27,16 @@
     "workbench/task_creator_ui.py": "e53bfb75ecb150433d1f3109a85cc44e2b04e05f8dba22e4187348a709b1f377",
     "test_task_authoring.py": "8a71ac242685bf0da97b1c5b293edd38b398439f3da32429440cefca579aa7da",
     "CREATE_TASK_zh.md": "aa33fd0b38631cea429a706d1013a1347ac170a08572878112ef61e1c55e5bec",
-    "WORKBENCH_zh.md": "0804f993d4e27b283fe97d5682e883cfa9fc13963101605ae6bb89a8087b705f"
+    "WORKBENCH_zh.md": "80600657beb7633225a33cceead96621a7ebf86d457a753c7427bdcdd4482689",
+    "EVALUATION_zh.md": "09f1c64e3d2d11f2017fb79b2237c917d2eb2fb95ef3892c91d5685e51648279",
+    "test_live_evaluation.py": "3da0bbe5699e5951d406f695f411b664501bcecb76f9a15a888b0b9d7d03feb3",
+    "workbench/evaluation_ui.py": "31c505df14c1d6673d2e5578ce731cb9483b98682f2ff9ecda95ddf89f0e6b7a",
+    "workbench/eval_runner.py": "944fc8afb28709dc581ddcde68059b1eccd40484d346dd83af66979cbdff3c71",
+    "workbench/eval_protocol.py": "28991e96e9d3e4964775b96f2d88bfd5796ee708814ff79ba8fd0e666c1065dd",
+    "workbench/eval_policy.py": "1953e6d9de0935abef0755596ba50dd26ad0d8b1bc1eb56a76c81bb6db44f979",
+    "a100/inference_service.py": "2bbb930acb1e137901f3b689e6f89508e817dd1012d41932b144f51b8cb45845",
+    "a100/execution_manager.py": "25bc50a2083dd61f9d51f2cd1119eec17404999f111d6e6a75f00a17584031fc",
+    "a100/closed_loop.py": "96a33fca1f0eef53676439750462f0a06059a09586bc9a6441e557dd25bfcd9e",
+    "a100/evaluation_protocol.json": "f79da06907ae741f9b8fe8f2ea0dd4a7613a61ff8069dcbbfcd8b408b8d3d607"
   }
 }

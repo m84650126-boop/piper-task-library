@@ -1,0 +1,30 @@
+{
+  "version": "piper_closed_loop_acceptance_v1",
+  "status": "proposed_and_frozen_before_first_learned_policy_trial",
+  "execution_unit": "pick_place",
+  "success_checker": "contracts.py piper_contracts_v1; all grasp/move/place and handoff predicates must pass",
+  "thresholds": {
+    "hold_seconds": 0.4,
+    "place_seconds": 0.5,
+    "max_relative_drift_m": 0.008,
+    "max_relative_rotation_rad": 0.15,
+    "target_half_width_m": 0.045,
+    "max_linear_speed_m_s": 0.02,
+    "max_angular_speed_rad_s": 0.15
+  },
+  "cohorts": {
+    "seen_distribution_heldout_seeds": {"trials": 30, "definition": "10 frozen test seeds x 3 policy noise seeds", "minimum_successes": 24},
+    "new_position": {"trials": 30, "definition": "new reset seeds 5000-5029 in current supported XY +/-2.5cm envelope", "minimum_successes": 18},
+    "new_object_or_appearance": {"trials": 30, "definition": "not yet implemented; freeze object/appearance scene variants and safety scope before trials", "minimum_successes": null}
+  },
+  "policy_noise_seeds": [101, 202, 303],
+  "runtime": {"dt_s": 0.05, "chunk_size": 50, "executed_prefix": 10, "max_steps": 400,
+    "request_timeout_s": 1.0, "maximum_inference_p95_s": 0.5,
+    "mode": "synchronous_paused_simulation; not evidence of real-time scheduling",
+    "invalid_action": "reject entire chunk and terminate; no clipping", "termination": "task success, timeout, invalid action, interruption, or step budget; clear queue and reset model"},
+  "hard_failures_allowed": {"constraint_violations": 0, "unhandled_queue_underruns": 0},
+  "record_per_trial": ["model", "checkpoint_sha256", "protocol_sha256", "scene_sha256", "condition", "reset_seed", "policy_noise_seed", "success", "trials", "task_sim_s", "task_wall_s", "inference_p50_s", "inference_p95_s", "timeouts", "queue_underruns", "interventions", "constraint_violations"],
+  "checkpoint_selection": "validation only; lowest finite validation loss is a candidate, retain checkpoint only after heldout closed-loop gate; test never chooses checkpoint",
+  "subskills": "candidate only; report N/A with n=0 until independent entry/exit and continuous learned handoff protocol is approved",
+  "real_robot_trials": "not authorized or performed; separate hardware calibration and explicit authorization required"
+}
