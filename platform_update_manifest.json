@@ -2,12 +2,12 @@
   "schema": "piper_platform_sharing_update_v1",
   "base": "portable workbench 0.1 technical preview",
   "files": {
-    "collection_workbench.py": "e37d62a98c20a14e7adba980dee380d1eee8446d39c4225abf9757e70d0cf7d9",
+    "collection_workbench.py": "28d3683268891cff5af494f36d086a45f70124a6cce18e12e5f57ba7764c75e1",
     "platform_cli.py": "466b22b9c34ee32aa633f3631471e61cf2e2fa38409964277d55211cc66a58e7",
-    "workbench/plugin_api.py": "1e442d4a94bdfbf54eec5487d5cd8c5d3034a36f58165af277e3bfa88cbd7446",
+    "workbench/plugin_api.py": "ea244f69a316d2e3f13805d93e7d4b8df4911ae5049ea8ffd263d5721b4a654d",
     "workbench/task_packages.py": "264634ba2964fd547e391873d51b8ddeb662b7fa6f1b48498fe4f3e7ae5617db",
     "workbench/task_library.py": "f3db6462e801ce500d3ce7f08298d39d913748a8ca9b8d044cf03ee932e87226",
-    "TASK_SHARING_zh.md": "74ad51db7e5e3a89aa2df38bf9e7febfdd76d6b4734be8cd27b5b518660cef1f",
+    "TASK_SHARING_zh.md": "81489a9b1b0ccf8491674942d373d3aae8be67349cb40a91bf54bca04d4ce6e9",
     "TASK_PLUGIN_API_zh.md": "a150f36187c1f8020e498932e84540ebf216c8e132e1bbb2477719509a0c9f30",
     "PLATFORM_README_zh.md": "7cee52ed74a54f2b0678987741fbb08123d68fd5b999dd4ac57840c4c6acc6e3",
     "test_task_packages.py": "195efce6b07cfd1346c6f66e3e968be720ddea92de5618b70de1b2f6c4320193",
@@ -17,6 +17,16 @@
     "examples/shared_reach/task.py": "d7df40dee7f55b8daf26f90e7fe3e847339722e74e8cfdcc8837cb63746db865",
     "examples/shared_reach/task_package.json": "36549707b850e43a68d7d30cfa5dd89656f785af892949c86430b7266021e366",
     "examples/shared_reach/assets/marker.png": "c8cda4f4171decf5f05366f99b342bdc598497760d959741518c3391dc01eadb",
-    "examples/shared_reach/assets/marker.xml": "529c3df1e4e07615830615cd5f79b3978aadb919684bb79ad5ee73699de7c9d7"
+    "examples/shared_reach/assets/marker.xml": "529c3df1e4e07615830615cd5f79b3978aadb919684bb79ad5ee73699de7c9d7",
+    "workbench/core.py": "bd2589797ec7ec17edccd1f61215a95ad34d64b8cdae95389357f6ae3920724a",
+    "workbench/worker.py": "35f83404bf9d45042754afc98ecd691589a77282854766729b6cf578ecff8beb",
+    "workbench/data.py": "a82fdab62fec77c30595d743e6297de98473fe63b284d939fa104ebee9096899",
+    "workbench/task_data.py": "56bbc1abe5ca063a43d70067ff1c455e9d91541fea43704915e553508b351f97",
+    "workbench/task_authoring.py": "37efe81faf9e7b4bd808bd90cd7f2315e85a46ae28bff8c972cdb10615984b3c",
+    "workbench/task_templates.py": "7ab2b2129dd20041388e6cd50bd43e29e3d997539e954cc5c5e0304ad86698cf",
+    "workbench/task_creator_ui.py": "e53bfb75ecb150433d1f3109a85cc44e2b04e05f8dba22e4187348a709b1f377",
+    "test_task_authoring.py": "8a71ac242685bf0da97b1c5b293edd38b398439f3da32429440cefca579aa7da",
+    "CREATE_TASK_zh.md": "aa33fd0b38631cea429a706d1013a1347ac170a08572878112ef61e1c55e5bec",
+    "WORKBENCH_zh.md": "0804f993d4e27b283fe97d5682e883cfa9fc13963101605ae6bb89a8087b705f"
   }
 }

@@ -15,6 +15,7 @@ from workbench.core import (ROOT,DEFAULT,validate_recipe,new_session,catalog,
 from workbench.worker import run
 from workbench.tasks import TASKS
 from workbench.scene_assets import ENVIRONMENTS,OBJECTS
+from workbench.plugin_api import physical_task
 
 
 def desktop_root():
@@ -90,7 +91,9 @@ class Workbench:
         ttk.Label(header,text="  双RGB · 20Hz").pack(side="left")
         ttk.Button(header,text="新建场次",command=self.new).pack(side="right",padx=4)
         ttk.Button(header,text="打开场次",command=self.open_session).pack(side="right")
+        ttk.Button(header,text="新建原子任务…",command=self.new_atomic_task).pack(side="right",padx=4)
         menu=tk.Menu(self.root);packages=tk.Menu(menu,tearoff=False)
+        packages.add_command(label="新建原子任务…",command=self.new_atomic_task)
         packages.add_command(label="检查 / 安装任务包…",command=self.import_task_package)
         packages.add_command(label="从任务源目录导出…",command=self.export_task_package)
         packages.add_command(label="查看共享任务库说明",command=self.task_library_help)
@@ -216,13 +219,13 @@ class Workbench:
         environment=r.get("environment","basic");obj=r.get("object","red_cube")
         self.environment_code.set(environment);self.environment_label.set(ENVIRONMENTS[environment])
         self.object_code.set(obj);self.object_label.set(OBJECTS[obj]["label"])
-        self.object_selector.configure(state="disabled" if task=="wipe" else "readonly")
+        self.object_selector.configure(state="disabled" if physical_task(task)=="wipe" else "readonly")
         self.task_hint.set(TASKS[task]["hint"])
-        self.scene_help.set("拖动红/绿端点设置擦拭带；松开鼠标应用。\n录制/批采时锁定场景。" if task=="wipe" else "拖动红色物体或绿色目标；松开鼠标应用。\n录制/批采时锁定场景。")
-        self.start_label.configure(text="擦拭起点 X/Y" if task=="wipe" else "物品起点 X/Y")
-        self.goal_label.configure(text="擦拭终点 X/Y" if task=="wipe" else "绿目标 X / Y")
-        self.table.heading("start",text="擦拭起点XY" if task=="wipe" else "物体XY")
-        self.table.heading("goal",text="擦拭终点XY" if task=="wipe" else "目标XY")
+        self.scene_help.set("拖动红/绿端点设置擦拭带；松开鼠标应用。\n录制/批采时锁定场景。" if physical_task(task)=="wipe" else "拖动红色物体或绿色目标；松开鼠标应用。\n录制/批采时锁定场景。")
+        self.start_label.configure(text="擦拭起点 X/Y" if physical_task(task)=="wipe" else "物品起点 X/Y")
+        self.goal_label.configure(text="擦拭终点 X/Y" if physical_task(task)=="wipe" else "绿目标 X / Y")
+        self.table.heading("start",text="擦拭起点XY" if physical_task(task)=="wipe" else "物体XY")
+        self.table.heading("goal",text="擦拭终点XY" if physical_task(task)=="wipe" else "目标XY")
         for button,(_,label) in zip(self.phase_buttons,TASKS[task]["phases"]):button.configure(text=label)
         for key,values in self.values.items():
             raw=r[key] if isinstance(r[key],list) else [r[key]]
@@ -261,8 +264,9 @@ class Workbench:
             messagebox.showinfo("任务锁定","先保存/放弃当前录制，或停止批采/等待导出完成")
             return
         try:
-            r={**DEFAULT,**TASKS[selected].get("preset",{}),"task":selected,
-                "environment":self.environment_code.get(),"object":self.object_code.get() if selected!="wipe" else "red_cube"}
+            r={**DEFAULT,"environment":self.environment_code.get(),
+                "object":self.object_code.get() if physical_task(selected)!="wipe" else "red_cube",
+                **TASKS[selected].get("preset",{}),"task":selected}
             self.switch(new_session(r))
         except Exception as exc:
             self.task_label.set(TASKS[self.task_code.get()]["label"])
@@ -348,14 +352,14 @@ class Workbench:
         if self.actual:
             x,y=self.xy_to_screen(self.actual["cube"][:2]);c.create_oval(x-4,y-4,x+4,y+4,outline="#111827",width=2)
             x,y=self.xy_to_screen(self.actual["tcp"][:2]);c.create_text(x,y,text="+",fill="#1d354e",font=("Arial",16))
-        if self.task_code.get()=="wipe":
+        if physical_task(self.task_code.get())=="wipe":
             import math
             a,b=r["cube_xy"],r["goal_xy"];dx,dy=b[0]-a[0],b[1]-a[1];length=math.hypot(dx,dy)
             if length>0:
                 n=[-.03*dy/length,.03*dx/length]
                 corners=[[p[0]+s*n[0],p[1]+s*n[1]] for p,s in ((a,-1),(b,-1),(b,1),(a,1))]
                 c.create_polygon(*[v for p in corners for v in self.xy_to_screen(p)],outline="#178cbe",fill="",width=2)
-        legend="圆点=带起点 / 方点=带终点" if self.task_code.get()=="wipe" else "圆点=物体起点 / 方点=目标"
+        legend="圆点=带起点 / 方点=带终点" if physical_task(self.task_code.get())=="wipe" else "圆点=物体起点 / 方点=目标"
         c.create_text(8,8,text="Y↑   X→  |  "+legend+"  |  蓝=训练 紫=验证 橙=测试",anchor="nw",fill="#48576a",font=("Microsoft YaHei UI",9))
 
     def drag_start(self,event):
@@ -428,7 +432,7 @@ class Workbench:
         images=[cv2.imencode(".png",cv2.cvtColor(f["observation/images/"+key][i],cv2.COLOR_RGB2BGR))[1].tobytes() for key in ("overview","wrist")]
         self.show_images(images)
         extra=(f" | 覆盖 {float(f['diagnostics/wipe_fraction'][i]):.1%} | 接触力 {float(f['diagnostics/wipe_force'][i]):.2f}N"
-               if f.attrs.get("execution_unit")=="wipe" else "")
+               if physical_task(f.attrs.get("execution_unit"))=="wipe" else "")
         self.live_text.set(f"预览 {Path(f.filename).name}  |  帧 {i+1}/{len(f['action'])}  |  {f['stage'].asstr()[i]}"+extra+"  |  点击任意控制返回实时画面")
         self.preview_index+=1
         if self.preview_index>=len(f["action"]):self.stop_preview();return
@@ -495,7 +499,7 @@ class Workbench:
             self.actual=latest
             if not self.preview:
                 self.show_images(latest["images"])
-                extra=f" | 擦拭覆盖 {latest.get('wipe_fraction',0):.1%} | 接触力 {latest.get('wipe_force',0):.2f}N" if self.task_code.get()=="wipe" else ""
+                extra=f" | 擦拭覆盖 {latest.get('wipe_fraction',0):.1%} | 接触力 {latest.get('wipe_force',0):.2f}N" if physical_task(self.task_code.get())=="wipe" else ""
                 self.live_text.set(f"实时 | {latest['phase']} | t={latest['time']:.2f}s | 当前记录 {latest['frames']}帧 | TCP=["+", ".join(f"{x:.3f}" for x in latest['tcp'])+"] m"+extra)
             self.draw_map()
         if self.process and not self.process.is_alive() and self.mode not in ("error","starting"):
@@ -524,6 +528,17 @@ class Workbench:
         if not path:return
         try:self.switch(path)
         except Exception as exc:messagebox.showerror("无法打开",str(exc))
+
+    def new_atomic_task(self):
+        if self.mode not in ("idle","error") or self.job:
+            messagebox.showinfo("采集进行中","请先保存/放弃录制或结束批采与转换");return
+        from workbench.task_creator_ui import TaskCreator
+        return TaskCreator(self)
+
+    def new_task_help(self):
+        window=tk.Toplevel(self.root);window.title("新建原子任务 · 详细步骤");window.geometry("880x680")
+        text=tk.Text(window,wrap="word",font=("Microsoft YaHei UI",11));text.pack(fill="both",expand=True)
+        text.insert("1.0",(ROOT/"CREATE_TASK_zh.md").read_text(encoding="utf-8"));text.configure(state="disabled")
 
     def import_task_package(self):
         try:

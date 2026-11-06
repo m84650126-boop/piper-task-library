@@ -29,6 +29,10 @@ python tools/apply_platform_update.py --platform 'C:\path\to\piper_l_sim'
 
 ## 作者：添加新任务
 
+工作台已有 **新建原子任务…** 按钮：可从拾放/推/拉/擦拭模板创建配置变体，选择已有场景与物品、填写坐标及随机范围，并生成源码、ZIP和启用配置。
+完整界面操作示例见 [新建任务详细步骤](platform_update/CREATE_TASK_zh.md)。创建后重启工作台，再专家试跑、审核和回放。
+向导也能生成全新逻辑的开发草稿，草稿不自动启用；新物理动作仍需实现控制器和成功判据。
+
 1. 复制 tasks/shared_reach/1.0.0 到 tasks/<新id>/<版本>。
 2. 修改 task_package.json 的 id/version/author/description，同步修改 task.py 的任务 id、环境 task_name、成功判据 execution_unit，以及 scene.json。
 3. 添加完整资产，使用相对路径或 XML 的 task-package://assets/...。记录所有资产的来源与许可。
@@ -44,7 +48,7 @@ python tools/build_catalog.py --check
 6. 将源码、ZIP、catalog.json 与 validation/<id>/<版本>.json 一起提交 PR。维护者审阅后合并，其他人刷新任务库即可获取。
 
 同 id/版本的包不可替换内容。代码、场景、成功判据或资产变化必须升级版本。
-任务包不等于图形化任务编辑器，新物理任务仍需实现环境/专家/成功判据。
+配置变体向导复用已有动作能力；新物理任务仍需实现环境/专家/成功判据。
 接口目前固定 PiPER-L、7维状态/动作、20Hz、双路320×240 RGB和三个阶段，不适用于任意机械臂。
 详细接口与操作见 platform_update/TASK_SHARING_zh.md 和 platform_update/TASK_PLUGIN_API_zh.md。
 

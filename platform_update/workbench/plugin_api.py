@@ -34,11 +34,13 @@ class TaskPlugin:
     source_file: str=""
     package_sha256: str=""
     package_directory: str=""
+    base_task: str=""
 
     def metadata(self):
         result=dict(api_version=API_VERSION,id=self.id,version=self.version,
                     source_sha256=self.source_sha256,source_file=self.source_file)
         if self.package_sha256:result["package_sha256"]=self.package_sha256
+        if self.base_task:result["base_task"]=self.base_task
         return result
 
 
@@ -102,6 +104,11 @@ def load_enabled(catalog):
 
 
 def get_plugin(task):return PLUGINS.get(task)
+
+
+def physical_task(task):
+    plugin=get_plugin(task)
+    return plugin.base_task if plugin and plugin.base_task else task
 
 
 def plugin_metadata(task):
