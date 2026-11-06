@@ -2,8 +2,6 @@
 import argparse
 import json
 from pathlib import Path
-import tempfile
-import sys
 
 from task_packages import export_package, inspect_package, json_bytes, read_folder, seal_folder
 
@@ -23,14 +21,16 @@ def main():
             raise ValueError("Task directory id/version mismatch")
         relative = f"packages/{m['id']}/{m['version']}.zip"
         path = ROOT / relative
-        with tempfile.TemporaryDirectory() as temp:
-            result = export_package(manifest.parent, Path(temp) / "task.zip")
-            content = Path(result["path"]).read_bytes()
-            if path.exists() and path.read_bytes() != content:
+        if path.exists():
+            # ZIP headers and zlib output can vary across OS/Python versions.
+            # Preserve the published bytes and verify their full payload against source.
+            report = inspect_package(path)
+            if report["manifest"] != m or report["manifest_sha256"] != checksum:
                 raise ValueError("Published package differs: increment version instead of replacing " + relative)
-            if not path.exists():
-                if args.check: raise ValueError("Missing package " + relative)
-                path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(content)
+            result = dict(sha256=report["archive_sha256"])
+        else:
+            if args.check: raise ValueError("Missing package " + relative)
+            result = export_package(manifest.parent, path)
         validation = f"validation/{m['id']}/{m['version']}.json"
         validation_data = json.loads((ROOT / validation).read_text(encoding="utf-8")) if (ROOT / validation).exists() else {"status": "unvalidated"}
         entries.append(dict(id=m["id"], version=m["version"], description=m["description"],

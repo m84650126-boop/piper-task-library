@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Verify portable ZIP checking and immutable task versions
+        run: python3 tools/test_catalog.py
       - name: Verify source inventories, ZIPs and catalog without executing tasks
         run: python3 tools/build_catalog.py --check
       - name: Verify platform update file hashes
