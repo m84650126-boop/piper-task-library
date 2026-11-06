@@ -30,5 +30,8 @@
   "portable_windows_relocation": "automated collection and replay passed with author source removed",
   "linux_runtime": "not tested",
   "success_criterion": "Unladen TCP above goal at z=0.18m, stable >=0.5s within 1cm; reference object unmoved within5mm and untouched",
-  "source_tests": "test_task_packages.py"
+  "source_tests": "test_task_packages.py",
+  "platform_sharing_regression_tests": 18,
+  "old_platform_update": "passed; prior enabled config and user data preserved; backup verified; dual RGB and expert collection passed",
+  "gui_handlers": "export and inspect/install handlers passed using application-owned tests; native clicks not exercised"
 }
