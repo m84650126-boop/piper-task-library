@@ -35,6 +35,16 @@ class TaskPackages(unittest.TestCase):
         self.assertFalse(install["code_executed"])
         self.assertTrue((Path(install["path"]) / "assets/marker.png").exists())
 
+    @unittest.skipUnless(__import__("os").name=="nt", "Windows directory ACL regression")
+    def test_installed_directory_inherits_destination_acl(self):
+        import os
+        import subprocess
+        result=packages.install_package(self.archive,self.folder/"receiver")
+        command=" $ErrorActionPreference='Stop'; (Get-Acl -LiteralPath $env:PIPER_ACL_TEST_TARGET).AreAccessRulesProtected"
+        checked=subprocess.run(["powershell.exe","-NoProfile","-NonInteractive","-Command",command],
+            env={**os.environ,"PIPER_ACL_TEST_TARGET":result["path"]},capture_output=True,text=True,check=True)
+        self.assertEqual(checked.stdout.strip(),"False","Installed tasks must inherit the destination ACL, not mkdtemp's owner-only ACL")
+
     def test_tampered_assets_and_extra_payload_rejected(self):
         for extra in (False, True):
             target = self.folder / ("extra.zip" if extra else "tampered.zip")

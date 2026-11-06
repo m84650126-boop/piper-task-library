@@ -6,7 +6,7 @@ from pathlib import Path, PurePosixPath
 import re
 import shutil
 import stat
-import tempfile
+import uuid
 import zipfile
 import xml.etree.ElementTree as ET
 
@@ -201,7 +201,12 @@ def install_package(archive, root=None, enable=False):
         if read_folder(target)[2] != checksum:
             raise ValueError("Installed version has changed")
     else:
-        tmp = Path(tempfile.mkdtemp(prefix="incoming-", dir=versions))
+        # Windows/Python3.13 gives mkdtemp() an owner-only ACL. A rename
+        # preserves it and prevents the desktop user from reading installed tasks
+        # when installation runs under a different account. Inherit the normal
+        # destination ACL instead; mkdir remains exclusive with an unpredictable name.
+        tmp = versions / ("incoming-" + uuid.uuid4().hex)
+        tmp.mkdir()
         try:
             for name, content in {**payload, "task_package.json": json_bytes(m)}.items():
                 path = tmp.joinpath(*safe_name(name).parts)
