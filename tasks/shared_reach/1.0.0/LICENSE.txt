@@ -1,0 +1,4 @@
+Technical preview task template. No project-wide open-source license has been selected.
+This notice is not an MIT license grant. Confirm distribution terms with the project owner before redistribution outside the authorized collaboration.
+The example marker geometry and checker texture were generated for this project.
+PiPER and robosuite base assets are NOT included in this task package; their notices remain in the collection platform.

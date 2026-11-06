@@ -1,0 +1,48 @@
+{
+  "schema": "piper_task_catalog_v1",
+  "tasks": [
+    {
+      "archive": "packages/shared_reach/1.0.0.zip",
+      "archive_sha256": "a50aff33818a6be378106f53adaeceb129e4797d971906c5a80b84588e7ef767",
+      "description": "空载到达目标；包含场景配置、MJCF标记与纹理的共享模板",
+      "id": "shared_reach",
+      "package_sha256": "36549707b850e43a68d7d30cfa5dd89656f785af892949c86430b7266021e366",
+      "validation": {
+        "dataset_format": "v3.0",
+        "dual_rgb": [
+          320,
+          240,
+          20
+        ],
+        "episodes": 3,
+        "learned_policy_closed_loop": "not tested",
+        "lerobot_commit": "8a125584153240d7511dddfbda440bbee56b134a",
+        "lerobot_version": "0.6.2",
+        "linux_runtime": "not tested",
+        "package_id": "shared_reach",
+        "platform": "Windows-11-10.0.26200-SP0",
+        "portable_windows_relocation": "automated collection and replay passed with author source removed",
+        "python": "3.13.9",
+        "real_robot": "not tested",
+        "saved_action_replays_passed": true,
+        "seeds": [
+          960002,
+          960000,
+          960001
+        ],
+        "source_tests": "test_task_packages.py",
+        "spatial_splits": {
+          "test": 1,
+          "train": 1,
+          "validation": 1
+        },
+        "status": "expert_replay_and_conversion_passed",
+        "success_criterion": "Unladen TCP above goal at z=0.18m, stable >=0.5s within 1cm; reference object unmoved within5mm and untouched",
+        "successes": 3,
+        "version": "1.0.0"
+      },
+      "validation_record": "validation/shared_reach/1.0.0.json",
+      "version": "1.0.0"
+    }
+  ]
+}

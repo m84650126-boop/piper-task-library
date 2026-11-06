@@ -1,0 +1,21 @@
+{
+  "api_version": 1,
+  "author": "PiPER Workbench project",
+  "base_assets": "Uses PiPER-L and robosuite assets supplied by the collection platform",
+  "description": "空载到达目标；包含场景配置、MJCF标记与纹理的共享模板",
+  "entrypoint": "task.py",
+  "files": {
+    "LICENSE.txt": "748ebaf294198f3bc56a67d47503413d4b36bda2206193b024789ddc575d4021",
+    "README.md": "83a9f415d40185c5eb5ac40e40e92b1a44577de868860c5afb95042b4cea29ee",
+    "assets/marker.png": "c8cda4f4171decf5f05366f99b342bdc598497760d959741518c3391dc01eadb",
+    "assets/marker.xml": "529c3df1e4e07615830615cd5f79b3978aadb919684bb79ad5ee73699de7c9d7",
+    "scene.json": "934121278f5e0eb82fae89e612fe1d81a49cf4567b1d1a3528bb886aa7994f60",
+    "task.py": "d7df40dee7f55b8daf26f90e7fe3e847339722e74e8cfdcc8837cb63746db865"
+  },
+  "id": "shared_reach",
+  "license_file": "LICENSE.txt",
+  "robot": "piper_l",
+  "scene_config": "scene.json",
+  "schema": "piper_task_package_v1",
+  "version": "1.0.0"
+}

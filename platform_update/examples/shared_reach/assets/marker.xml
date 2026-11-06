@@ -1,0 +1,9 @@
+<mujoco>
+  <asset>
+    <texture name="shared_marker_texture" type="2d" file="task-package://assets/marker.png"/>
+    <material name="shared_marker_material" texture="shared_marker_texture" texrepeat="1 1"/>
+  </asset>
+  <worldbody>
+    <geom name="shared_scene_marker" type="box" pos="0.12 0.30 0.002" size="0.045 0.03 0.001" material="shared_marker_material" contype="0" conaffinity="0"/>
+  </worldbody>
+</mujoco>

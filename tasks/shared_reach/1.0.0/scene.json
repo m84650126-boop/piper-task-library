@@ -1,0 +1,13 @@
+{
+  "task": "shared_reach",
+  "target_height_m": 0.18,
+  "preset": {
+    "environment": "robosuite_lab",
+    "object": "red_cube",
+    "cube_xy": [0.40, -0.10],
+    "goal_xy": [0.34, 0.18],
+    "cube_bounds": [0.34, 0.44, -0.16, -0.04],
+    "goal_bounds": [0.28, 0.40, 0.08, 0.20],
+    "min_distance": 0.10
+  }
+}

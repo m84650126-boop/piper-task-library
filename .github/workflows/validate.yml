@@ -1,0 +1,16 @@
+name: Validate task packages
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify source inventories, ZIPs and catalog without executing tasks
+        run: python3 tools/build_catalog.py --check
+      - name: Verify platform update file hashes
+        run: python3 tools/verify_platform_update.py

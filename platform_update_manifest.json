@@ -1,0 +1,22 @@
+{
+  "schema": "piper_platform_sharing_update_v1",
+  "base": "portable workbench 0.1 technical preview",
+  "files": {
+    "collection_workbench.py": "e37d62a98c20a14e7adba980dee380d1eee8446d39c4225abf9757e70d0cf7d9",
+    "platform_cli.py": "466b22b9c34ee32aa633f3631471e61cf2e2fa38409964277d55211cc66a58e7",
+    "workbench/plugin_api.py": "1e442d4a94bdfbf54eec5487d5cd8c5d3034a36f58165af277e3bfa88cbd7446",
+    "workbench/task_packages.py": "06d7d86fda7d72231f6e43dfad3439eeadc121f2905eba0355d93448985b7c2e",
+    "workbench/task_library.py": "f3db6462e801ce500d3ce7f08298d39d913748a8ca9b8d044cf03ee932e87226",
+    "TASK_SHARING_zh.md": "74ad51db7e5e3a89aa2df38bf9e7febfdd76d6b4734be8cd27b5b518660cef1f",
+    "TASK_PLUGIN_API_zh.md": "a150f36187c1f8020e498932e84540ebf216c8e132e1bbb2477719509a0c9f30",
+    "PLATFORM_README_zh.md": "7cee52ed74a54f2b0678987741fbb08123d68fd5b999dd4ac57840c4c6acc6e3",
+    "test_task_packages.py": "a92cdc1eedee420d69b8d1fb20c8d7cbe97200fde8ce16cadf1ec1d85fb7426b",
+    "examples/shared_reach/LICENSE.txt": "748ebaf294198f3bc56a67d47503413d4b36bda2206193b024789ddc575d4021",
+    "examples/shared_reach/README.md": "83a9f415d40185c5eb5ac40e40e92b1a44577de868860c5afb95042b4cea29ee",
+    "examples/shared_reach/scene.json": "934121278f5e0eb82fae89e612fe1d81a49cf4567b1d1a3528bb886aa7994f60",
+    "examples/shared_reach/task.py": "d7df40dee7f55b8daf26f90e7fe3e847339722e74e8cfdcc8837cb63746db865",
+    "examples/shared_reach/task_package.json": "36549707b850e43a68d7d30cfa5dd89656f785af892949c86430b7266021e366",
+    "examples/shared_reach/assets/marker.png": "c8cda4f4171decf5f05366f99b342bdc598497760d959741518c3391dc01eadb",
+    "examples/shared_reach/assets/marker.xml": "529c3df1e4e07615830615cd5f79b3978aadb919684bb79ad5ee73699de7c9d7"
+  }
+}
