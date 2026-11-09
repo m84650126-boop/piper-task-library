@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import h5py
 import numpy as np
+from contracts import OBJECT_EVIDENCE
 from .plugin_api import physical_task
 from .tasks import TASKS,SURFACE_EXTRA,WIPE_EXTRA,evaluate_task,check_task_condition
 from .data import scene_metadata
@@ -20,6 +21,8 @@ def evidence(f):
     keys=dict(state="observation/state",cube_xyz="sim/cube_xyz",tcp_xyz="sim/tcp_xyz",timestamp="timestamp")
     keys.update({key:"diagnostics/"+key for key in ("finger_contacts","table_contact","held_over_interval",
         "cube_velocity","cube_in_tcp","cube_rotation_in_tcp")+extras(task)})
+    if f.attrs.get("pick_place_profile_json"):
+        keys.update({key:"diagnostics/"+key for key in OBJECT_EVIDENCE})
     arrays={key:f[path][:] for key,path in keys.items()}
     samples=[{key:array[i] for key,array in arrays.items()} for i in range(len(f["action"]))]
     samples.append({key:f["final_observation/"+key][()] for key in keys})
@@ -51,7 +54,7 @@ def inspect(path,require_images=True):
         assert labels==[task]*n
         samples=evidence(f)
         assert abs(samples[-1]["timestamp"]-samples[-2]["timestamp"]-.05)<1e-8
-        report=evaluate_task(samples,stages,task,meta["start_xy"],meta["goal_xy"])
+        report=evaluate_task(samples,stages,task,meta["start_xy"],meta["goal_xy"],pick_profile=json.loads(f.attrs.get("pick_place_profile_json", "null")))
         assert report["success"] and report==json.loads(f.attrs["contract_report"]),"stored task contract differs"
         return dict(source_file=Path(path).name,frames=n,seed=int(f.attrs["seed"]),execution_unit=task,
             source=str(f.attrs["source"]),policy_id=str(f.attrs["policy_id"]),task=str(f.attrs["task"]),
@@ -82,7 +85,10 @@ def validate(path,require_images=True,progress=None):
                 env.wipe_distance=float(f["diagnostics/wipe_distance_m"][0])
                 env.wipe_peak=float(f["diagnostics/wipe_peak_force"][0])
                 env.last_pad_xy=env.data.geom_xpos[env.pad_geom,:2].copy()
-            diag={key:f["diagnostics/"+key][:] for key in extras(info["execution_unit"])}
+            keys = extras(info["execution_unit"])
+            if f.attrs.get("pick_place_profile_json"):
+                keys += OBJECT_EVIDENCE + ("held_over_interval",)
+            diag={key:f["diagnostics/"+key][:] for key in keys}
             probe=mujoco.MjData(env.model);worst=0.
             for i in range(len(actions)):
                 if progress and i%80==0:progress(f"{info['execution_unit']}物理回放 {i}/{len(actions)}")

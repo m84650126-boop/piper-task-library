@@ -29,8 +29,8 @@ def build_variant(config):
     def expert(env,plan):
         from .core import expert as generate
         yield from generate(env._inner,plan)
-    def evaluate(samples,stages,start,goal):
-        result=dict(evaluate_task(samples,stages,base,start,goal))
+    def evaluate(samples,stages,start,goal,pick_profile=None):
+        result=dict(evaluate_task(samples,stages,base,start,goal,pick_profile=pick_profile))
         success=bool(result.get("success",result.get("pick_place_success",False)))
         result.update(execution_unit=task,base_execution_unit=base,success=success,
             independent_learned_policy_validated=False)

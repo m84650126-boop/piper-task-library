@@ -118,11 +118,16 @@ def main():
     c=subs.add_parser("collect");c.add_argument("--task",required=True);c.add_argument("--episodes",type=int,default=1)
     c.add_argument("--seed",type=int,default=1000000);c.add_argument("--random",action="store_true");c.add_argument("--recipe")
     c.add_argument("--environment");c.add_argument("--object");c.add_argument("--diagnostics-only",action="store_true")
+    subs.add_parser("skills",help="List requested atomic skills and their collection availability")
     subs.add_parser("launch")
     a=p.parse_args()
     if a.command=="doctor":doctor(a)
     elif a.command=="plugins":plugin_command(a)
     elif a.command=="collect":collect(a)
+    elif a.command=="skills":
+        from workbench.skill_catalog import entries
+        from workbench.tasks import TASKS
+        print(json.dumps(entries(TASKS),indent=2,ensure_ascii=True))
     elif a.command=="packages":
         from workbench.task_packages import package_command
         package_command(a)

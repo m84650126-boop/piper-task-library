@@ -30,6 +30,8 @@ def validate_recipe(recipe):
         r["task_plugin"]=plugin
     from .scene_assets import ENVIRONMENTS,OBJECTS
     if r["environment"] not in ENVIRONMENTS or r["object"] not in OBJECTS:raise ValueError("未知场景或物品")
+    if "height_m" in OBJECTS[r["object"]] and physical_task(r["task"])!="pick_place":
+        raise ValueError("较大尺寸物品当前用于完整拾放，请为其他任务选择原有尺寸")
     if physical_task(r["task"])=="wipe" and r["object"]!="red_cube":raise ValueError("擦拭使用已安装工具，物品选择仅适用于拾放/推拉")
     for key in ("cube_xy", "goal_xy"):
         a = np.asarray(r[key],dtype=float)
@@ -152,7 +154,7 @@ def make_environment(render=True,task="pick_place",recorded_xml=None,recipe=None
     if task!="pick_place":
         from .surface import SurfaceEnv
         return SurfaceEnv(task,render,recorded_xml,recipe)
-    from .scene_assets import compose
+    from .scene_assets import compose,object_height_offset,pick_place_profile
     source=recorded_xml or compose((ROOT/"generated/scene.xml").read_text(encoding="utf-8"),recipe)
     from sim import PiperEnv
     class SceneEnv(PiperEnv):
@@ -167,7 +169,7 @@ def make_environment(render=True,task="pick_place",recorded_xml=None,recipe=None
             self.model.site_pos[self.model.site("goal").id,:2] = self.goal_xy
             # Original reset gives exactly the original robot initialization.
             super().reset(seed,randomize=False)
-            self.data.qpos[self.cube_q:self.cube_q+3] = np.r_[cube_xy,.021]
+            self.data.qpos[self.cube_q:self.cube_q+3] = np.r_[cube_xy,.021+object_height_offset(recipe)]
             self.data.qvel[self.cube_dof:self.cube_dof+6] = 0
             mujoco.mj_forward(self.model,self.data)
             for _ in range(200):self._substep()
@@ -178,17 +180,22 @@ def make_environment(render=True,task="pick_place",recorded_xml=None,recipe=None
             self.held_over_interval = False
             self.reset_seed = seed
             return self.observe()
-    env=SceneEnv(render=render,scene_xml=source)
+    env=SceneEnv(render=render,scene_xml=source,pick_profile=pick_place_profile(recipe["object"]))
     env.source_xml=source;env.recipe_profile=recipe
     return env
 
 
 def waypoints(env):
+    from .scene_assets import object_height_offset
     c,g = env.initial_cube[:2],env.goal_xy
-    return [(np.r_[c,.23],.09,1.2,"approach"),(np.r_[c,.029],.09,1.6,"descend"),
-        (np.r_[c,.029],0.,1.,"close"),(np.r_[c,.23],0.,1.6,"lift"),
-        (np.r_[g,.23],0.,2.,"transfer"),(np.r_[g,.029],0.,1.5,"lower"),
-        (np.r_[g,.029],.09,1.,"release"),(np.r_[g,.23],.09,1.5,"retreat"),
+    contact_z=.029+object_height_offset(env.recipe_profile)
+    if env.recipe_profile.get("object") == "rs_cereal_native":
+        # Grip the tall carton above its center so its top clears the palm.
+        contact_z += .020
+    return [(np.r_[c,.23],.09,1.2,"approach"),(np.r_[c,contact_z],.09,1.6,"descend"),
+        (np.r_[c,contact_z],0.,1.,"close"),(np.r_[c,.23],0.,1.6,"lift"),
+        (np.r_[g,.23],0.,2.,"transfer"),(np.r_[g,contact_z],0.,1.5,"lower"),
+        (np.r_[g,contact_z],.09,1.,"release"),(np.r_[g,.23],.09,1.5,"retreat"),
         (np.r_[g,.23],.09,.8,"settle")]
 
 
@@ -272,7 +279,7 @@ def make_writer(session,env,source,recipe):
             if not self.labels:raise ValueError("不能保存空轨迹")
             final=env.observe()
             stages=self.file["stage"].asstr()[:].tolist()
-            self.report=evaluate_task(self.samples+[final],stages,env.task_name,self.file.attrs["start_xy"],env.goal_xy)
+            self.report=evaluate_task(self.samples+[final],stages,env.task_name,self.file.attrs["start_xy"],env.goal_xy,pick_profile=self.pick_profile)
             for key,value in final.items():
                 if key not in ("overview","wrist","qpos"):
                     self.file.create_dataset("final_observation/"+key,data=value)

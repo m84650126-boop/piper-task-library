@@ -21,12 +21,14 @@ except ImportError:
     from execution_manager import ExecutionManager
 
 
-def stable_held(samples):
+def stable_held(samples, pick_profile=None):
     count = round(THRESHOLDS["hold_seconds"]/.05)+1
     window = samples[-count:]
     if len(window) < count:
         return False
-    if not all(s["finger_contacts"].all() and s["cube_xyz"][2] > .06 for s in window):
+    held_z = pick_profile["min_held_z_m"] if pick_profile else .06
+    if not all(s["finger_contacts"].all() and s["cube_xyz"][2] > held_z
+               and (not pick_profile or not s["table_contact"]) for s in window):
         return False
     rel = np.asarray([s["cube_in_tcp"] for s in window])
     rotations = np.asarray([s["cube_rotation_in_tcp"] for s in window])
@@ -41,13 +43,15 @@ def request(base, path, obj, timeout=1.):
         return json.load(response)
 
 
-def evaluation_phase(phase, samples, goal_xy=(.34,.18)):
+def evaluation_phase(phase, samples, goal_xy=(.34,.18), pick_profile=None):
     obs = samples[-1]
-    held = stable_held(samples)
+    held = stable_held(samples, pick_profile)
+    target_width = pick_profile["target_half_width_m"] if pick_profile else .045
+    transfer_z = pick_profile["min_transfer_z_m"] if pick_profile else .12
     if phase == "grasp" and held:
         return "move_held_object"
-    if (phase == "move_held_object" and held and (np.abs(obs["cube_xyz"][:2]-goal_xy)<.045).all()
-            and obs["cube_xyz"][2] > .12):
+    if (phase == "move_held_object" and held and (np.abs(obs["cube_xyz"][:2]-goal_xy)<target_width).all()
+            and obs["cube_xyz"][2] > transfer_z):
         return "place"
     return phase
 

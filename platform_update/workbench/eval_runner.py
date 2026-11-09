@@ -82,7 +82,7 @@ def run(spec,folder):
                         except StopIteration:reason="expert_ended";break
                         manager.accept(np.asarray(action).reshape(1,7),generation,0.)
                     else:
-                        phase=evaluation_phase(phase,writer.samples+[obs],env.goal_xy)
+                        phase=evaluation_phase(phase,writer.samples+[obs],env.goal_xy,writer.pick_profile)
                         if not manager.queue:
                             frame(obs,trial,phase,step)
                             emit("inference_start",trial=trial,step=step)
@@ -97,7 +97,7 @@ def run(spec,folder):
                     if stopped():raise InterruptedEvaluation()
                     action=manager.next_action();writer.append(obs,action,phase);stages.append(phase)
                     env.step(action);steps+=1;lift=max(lift,float(env.cube_position()[2]));after=env.observe()
-                    report=evaluate_task(writer.samples+[after],stages,task,condition["start_xy"],env.goal_xy)
+                    report=evaluate_task(writer.samples+[after],stages,task,condition["start_xy"],env.goal_xy,pick_profile=writer.pick_profile)
                     success=bool(report.get("success",report.get("pick_place_success",False)))
                     if time.perf_counter()-last_frame>=.10:
                         frame(after,trial,phase,steps);last_frame=time.perf_counter()

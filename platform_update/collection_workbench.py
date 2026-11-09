@@ -89,6 +89,7 @@ class Workbench:
         ttk.Label(header,text="  任务：").pack(side="left")
         selector=ttk.Combobox(header,textvariable=self.task_label,values=[v["label"] for v in TASKS.values()],state="readonly",width=24)
         selector.pack(side="left");selector.bind("<<ComboboxSelected>>",self.change_task)
+        ttk.Button(header,text="技能目录…",command=self.open_skill_catalog).pack(side="left",padx=8)
         ttk.Label(header,text="  双RGB · 20Hz").pack(side="left")
         ttk.Button(header,text="新建场次",command=self.new).pack(side="right",padx=4)
         ttk.Button(header,text="打开场次",command=self.open_session).pack(side="right")
@@ -125,7 +126,7 @@ class Workbench:
             combo=ttk.Combobox(resources,textvariable=variable,values=choices,state="readonly",width=26)
             combo.grid(row=row,column=1,pady=3,sticky="ew");combo.bind("<<ComboboxSelected>>",self.change_assets)
             if row==1:self.object_selector=combo
-        ttk.Label(resources,text="robosuite v1.5.2场景/网格/纹理；PiPER-L控制。\n活动物品统一高4cm、45g，保留原始比例。",wraplength=310,foreground="#245579").grid(row=2,column=0,columnspan=2,sticky="w")
+        ttk.Label(resources,text="robosuite v1.5.2场景/网格/纹理；PiPER-L控制。\n物品保留网格比例，尺寸以所选版本为准。",wraplength=310,foreground="#245579").grid(row=2,column=0,columnspan=2,sticky="w")
         ttk.Button(resources,text="打开 / 关闭3D场景浏览器",command=lambda:self.send(op="viewer")).grid(row=3,column=0,columnspan=2,sticky="ew",pady=4)
         scene=ttk.LabelFrame(left,text="1  场景设置（单位：米）",padding=8);scene.pack(fill="x")
         for row,(key,title) in enumerate((("cube_xy","红方块 X / Y"),("goal_xy","绿目标 X / Y"))):
@@ -153,7 +154,7 @@ class Workbench:
         self.record_button.pack(fill="x")
         ttk.Button(manual,text="按当前摆放执行专家 · 录制1条",command=self.expert_once).pack(fill="x",pady=3)
         ttk.Button(manual,text="放弃当前录制  [X]",command=lambda:self.send(op="discard")).pack(fill="x",pady=3)
-        ttk.Label(manual,text="W/S：X±   A/D：Y±   R/F：Z±（每次5mm）\nO：开爪   C：合爪   N：应用坐标重置\n点击“键盘控制区”后操作，编辑框内不触发运动。",justify="left").pack(anchor="w",pady=3)
+        ttk.Label(manual,text="W/S：X±   A/D：Y±   R/F：Z±（每次5mm）\nO/C：开合爪   N：重置   Q/E：旋钮任务旋转\n点击“键盘控制区”后操作，编辑框内不触发运动。",justify="left").pack(anchor="w",pady=3)
         self.key_area=tk.Label(manual,text="点击这里启用键盘控制",background="#dce8f5",foreground="#18334f",padx=5,pady=8,takefocus=True)
         self.key_area.pack(fill="x")
         self.key_area.bind("<Button-1>",lambda e:self.key_area.focus_set())
@@ -222,7 +223,9 @@ class Workbench:
         environment=r.get("environment","basic");obj=r.get("object","red_cube")
         self.environment_code.set(environment);self.environment_label.set(ENVIRONMENTS[environment])
         self.object_code.set(obj);self.object_label.set(OBJECTS[obj]["label"])
-        self.object_selector.configure(state="disabled" if physical_task(task)=="wipe" else "readonly")
+        base_task=physical_task(task)
+        self.object_selector.configure(state="disabled" if base_task=="wipe" else "readonly",
+            values=[item["label"] for item in OBJECTS.values() if base_task=="pick_place" or "height_m" not in item])
         self.task_hint.set(TASKS[task]["hint"])
         self.scene_help.set("拖动红/绿端点设置擦拭带；松开鼠标应用。\n录制/批采时锁定场景。" if physical_task(task)=="wipe" else "拖动红色物体或绿色目标；松开鼠标应用。\n录制/批采时锁定场景。")
         self.start_label.configure(text="擦拭起点 X/Y" if physical_task(task)=="wipe" else "物品起点 X/Y")
@@ -259,6 +262,71 @@ class Workbench:
             self.send(op="batch",recipe=r)
         except Exception as exc:messagebox.showerror("专家未启动",str(exc))
 
+    def open_skill_catalog(self):
+        from workbench.skill_catalog import entries
+        window = tk.Toplevel(self.root)
+        window.title("原子技能目录")
+        window.geometry("720x530")
+        window.transient(self.root)
+        panel = ttk.Frame(window, padding=14)
+        panel.pack(fill="both", expand=True)
+        skills = {entry["skill"]: entry for entry in entries(TASKS)}
+        available = sum(entry["status"] == "available" for entry in skills.values())
+        ttk.Label(panel, text=f"原子技能 · {available}/{len(skills)} 项可采集",
+                  style="Title.TLabel").pack(anchor="w")
+        query = tk.StringVar()
+        search = ttk.Entry(panel, textvariable=query)
+        search.pack(fill="x", pady=6)
+        ttk.Label(panel, text="按中文、英文或分类搜索").pack(anchor="w")
+        body = ttk.Frame(panel)
+        body.pack(fill="both", expand=True, pady=6)
+        table = ttk.Treeview(body, columns=("family", "status"), selectmode="browse")
+        table.heading("#0", text="技能")
+        table.heading("family", text="分类")
+        table.heading("status", text="状态")
+        table.column("#0", width=245)
+        table.column("family", width=140)
+        table.column("status", width=105)
+        scroll = ttk.Scrollbar(body, orient="vertical", command=table.yview)
+        table.configure(yscrollcommand=scroll.set)
+        scroll.pack(side="right", fill="y")
+        table.pack(side="left", fill="both", expand=True)
+        detail = tk.StringVar(value="选择技能查看适用场景。")
+        ttk.Label(panel, textvariable=detail, wraplength=650).pack(anchor="w", fill="x")
+
+        def open_selected():
+            selected = table.selection()
+            if selected and skills[selected[0]]["status"] == "available":
+                self.task_label.set(TASKS[skills[selected[0]]["task"]]["label"])
+                window.destroy()
+                self.change_task()
+
+        button = ttk.Button(panel, text="打开采集任务", command=open_selected, state="disabled")
+        button.pack(anchor="e", pady=(7, 0))
+
+        def update_selection(event=None):
+            selected = table.selection()
+            entry = skills[selected[0]] if selected else None
+            button.configure(state="normal" if entry and entry["status"] == "available" else "disabled")
+            detail.set(entry["detail"] if entry else "选择技能查看适用场景。")
+
+        def filter_skills(*_):
+            table.delete(*table.get_children())
+            phrase = query.get().strip().casefold()
+            for key, entry in skills.items():
+                if phrase not in f'{entry["label"]} {entry["english"]} {entry["family"]}'.casefold():
+                    continue
+                status = "可采集" if entry["status"] == "available" else "待实现"
+                table.insert("", "end", iid=key, text=f'{entry["label"]} · {entry["english"]}',
+                             values=(entry["family"], status))
+            update_selection()
+
+        query.trace_add("write", filter_skills)
+        table.bind("<<TreeviewSelect>>", update_selection)
+        table.bind("<Double-1>", lambda event: open_selected())
+        filter_skills()
+        search.focus_set()
+
     def change_task(self,event=None):
         selected=next(k for k,v in TASKS.items() if v["label"]==self.task_label.get())
         if selected==self.task_code.get():return
@@ -267,8 +335,11 @@ class Workbench:
             messagebox.showinfo("任务锁定","先保存/放弃当前录制，或停止批采/等待导出完成")
             return
         try:
+            object_key=self.object_code.get()
+            if physical_task(selected)=="wipe" or (physical_task(selected)!="pick_place" and "height_m" in OBJECTS[object_key]):
+                object_key="red_cube"
             r={**DEFAULT,"environment":self.environment_code.get(),
-                "object":self.object_code.get() if physical_task(selected)!="wipe" else "red_cube",
+                "object":object_key,
                 **TASKS[selected].get("preset",{}),"task":selected}
             self.switch(new_session(r))
         except Exception as exc:
@@ -316,6 +387,7 @@ class Workbench:
         key=event.keysym.upper()
         moves={"W":[.005,0,0],"S":[-.005,0,0],"A":[0,.005,0],"D":[0,-.005,0],"R":[0,0,.005],"F":[0,0,-.005]}
         if key in moves:self.send(op="move",delta=moves[key])
+        elif key in ("Q","E") and self.task_code.get()=="rotate":self.send(op="rotate",clockwise=key=="E")
         elif key in ("O","C"):self.send(op="gripper",aperture=.09 if key=="O" else 0.)
         elif key in ("RETURN","KP_ENTER"):self.send(op="record")
         elif key=="X":self.send(op="discard")
@@ -587,7 +659,7 @@ class Workbench:
     def help(self):
         window=tk.Toplevel(self.root);window.title("采集工作台操作说明");window.geometry("850x650")
         text=tk.Text(window,wrap="word",font=("Microsoft YaHei UI",11));text.pack(fill="both",expand=True)
-        text.insert("1.0",(ROOT/"WORKBENCH_zh.md").read_text(encoding="utf-8"));text.configure(state="disabled")
+        text.insert("1.0",(ROOT/"USER_MANUAL_zh.md").read_text(encoding="utf-8"));text.configure(state="disabled")
 
     def close(self):
         if self.evaluation_panel and self.evaluation_panel.running:
