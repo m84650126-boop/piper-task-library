@@ -21,6 +21,9 @@ def scene_metadata(f):
     anchor=np.asarray(f.attrs.get("start_xy",start[:2]),dtype=float)
     task=str(f.attrs.get("execution_unit","pick_place"))
     recipe=json.loads(f.attrs["recipe_json"])
+    from .scene_assets import pick_place_profile
+    if json.loads(f.attrs.get("pick_place_profile_json", "null")) != pick_place_profile(recipe.get("object", "red_cube")):
+        raise ValueError("拾放物品判据与场次配置不一致")
     from .plugin_api import plugin_metadata
     plugin=plugin_metadata(task)
     if plugin:

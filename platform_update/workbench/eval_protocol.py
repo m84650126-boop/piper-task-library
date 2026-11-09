@@ -20,7 +20,9 @@ def validate_spec(spec):
         request_timeout_s=60.,load_timeout_s=300.,pace=True,policy_seed=101,cohort="custom_unclassified"),**spec}
     if s["backend"] not in ("local","http","expert"):raise ValueError("未知评测后端")
     s["recipe"]=validate_recipe(s["recipe"])
-    if s["backend"]!="expert" and physical_task(s["recipe"]["task"])!="pick_place":
+    task = s["recipe"]["task"]
+    independent_pick_tasks = {"pick", "move_held_object", "place", "shake"}
+    if s["backend"]!="expert" and (physical_task(task)!="pick_place" or task in independent_pick_tasks):
         raise ValueError("模型闭环当前支持完整拾放及其配置变体；其他任务的策略终止适配尚未验证，可先做专家自检")
     for key,lo,hi in (("trials",1,1000),("max_steps",1,2000),("prefix",1,50)):
         if isinstance(s[key],bool) or int(s[key])!=float(s[key]) or not lo<=int(s[key])<=hi:raise ValueError(key+"超出支持范围")

@@ -1,5 +1,9 @@
 # PiPER Data Workbench · 可迁移技术预览版
 
+从安装到训练交接及闭环评测的完整操作见 [平台使用手册](USER_MANUAL_zh.md)。
+
+原子技能的覆盖范围、操作示例、工装参数与数据审核见 [原子技能采集说明](ATOMIC_COLLECTION_zh.md)。
+
 每个人在自己的电脑上安装运行，共用相同的数据协议和任务扩展接口。默认离线保存数据；不需要Codex、账户或在线服务。
 当前机器人适配器是PiPER-L；任务APIv1不是任意机器人接口，也不是多人网页服务器。
 
@@ -54,7 +58,7 @@ Linux使用 `python3.12 setup_platform.py --conversion`。固定LeRobot0.6.2源�
 
 任务包导出/导入及共享 Git 任务库见 TASK_SHARING_zh.md。工作台顶部“任务共享”菜单支持本地任务 ZIP。
 
-内置拾放、推、拉、擦拭；预览版额外启用单文件示例reach_target，证明独立扩展链路。
+内置完整拾放、独立抓取、持物移动、独立放置、夹持摇晃、推、拉、擦拭、滑盖开关、按钮按压和旋钮旋转。工作台的「技能目录」可按中英文或分类搜索，并标明待实现技能。平台另外启用单文件扩展示例 reach_target。
 开发者复制examples/reach_target.py，修改任务id、版本、场景/专家及成功判据，再明确启用：
 
 ```powershell

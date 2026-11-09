@@ -39,14 +39,16 @@ def run(commands,events,frames,session,recipe):
         return current
 
     def reset(cube,goal,current):
-        nonlocal xyz,phase,paused
+        nonlocal xyz,phase,paused,rotation
         env.reset_scene(cube,goal,current)
         xyz=env.data.site_xpos[env.tcp].copy()
+        rotation = env.down
         phase=TASKS[env.task_name]["phases"][0][0]
         paused=True
         start=env.start_xy if physical_task(env.task_name)=="wipe" else env.initial_cube[:2]
         group,split=spatial_group(start,env.goal_xy)
-        emit("reset",seed=current,cube_xy=start.tolist(),goal_xy=env.goal_xy.tolist(),group=group,split=split)
+        editable_start = np.asarray(cube) if env.task_name == "place" else start
+        emit("reset",seed=current,cube_xy=editable_start.tolist(),goal_xy=env.goal_xy.tolist(),group=group,split=split)
 
     def finish():
         nonlocal writer,plan,paused
@@ -95,6 +97,7 @@ def run(commands,events,frames,session,recipe):
     try:
         env=make_environment(render=True,task=recipe.get("task","pick_place"),recipe=recipe)
         xyz=np.zeros(3)
+        rotation=env.down
         reset(recipe["cube_xy"],recipe["goal_xy"],advance_seed())
         max_lift=float(env.cube_position()[2])
         emit("ready")
@@ -137,9 +140,17 @@ def run(commands,events,frames,session,recipe):
                     elif op=="move":
                         if batch:raise ValueError("批采中不能手动移动")
                         proposed=xyz+np.asarray(c["delta"])
-                        env.action[:6]=env.ik(proposed,seed=env.action[:6])
+                        env.action[:6]=env.ik(proposed,seed=env.action[:6],rotation=rotation)
                         xyz=proposed
                         paused=False
+                    elif op=="rotate":
+                        if batch or env.task_name!="rotate":raise ValueError("夹爪旋转仅用于旋钮任务的手动操作")
+                        from scipy.spatial.transform import Rotation
+                        angle = np.deg2rad(5 if c["clockwise"] else -5)
+                        proposed = Rotation.from_rotvec([0., 0., -angle]).as_matrix() @ rotation
+                        env.action[:6] = env.ik(xyz, seed=env.action[:6], rotation=proposed)
+                        rotation = proposed
+                        paused = False
                     elif op=="gripper":
                         if batch:raise ValueError("批采中不能手动控制夹爪")
                         env.action[6]=c["aperture"]
